@@ -33,21 +33,26 @@ def positive_links(changed_array):
 #generate nagative val samples
 def negative_valid(pos_val_num, adj, neg_links):
     neg_val = []
-    
+
     adj_array = csr_matrix(adj, dtype=np.int8).toarray()
     rows = adj_array.shape[0]
     cols = adj_array.shape[1]
-    
-    for i in range(pos_val_num):
-        while(True):
+
+    for _ in range(pos_val_num):
+        while True:
             row = random.randint(0,rows-1)
             col = random.randint(0,cols-1)
-            
-            if adj_array[row][col] == 0:
-                if [[row,col],-1] not in neg_links and [[col,row],-1] not in neg_links and [row,col] not in neg_val and [col,row] not in neg_val:
-                    neg_val.append([row,col])
-                    break
-                
+
+            if (
+                adj_array[row][col] == 0
+                and [[row, col], -1] not in neg_links
+                and [[col, row], -1] not in neg_links
+                and [row, col] not in neg_val
+                and [col, row] not in neg_val
+            ):
+                neg_val.append([row,col])
+                break
+
     neg_val = sorted(neg_val, key=lambda a:a[0])
     print('The number of negative val links:', int(len(neg_val)))
     return neg_val
@@ -58,22 +63,23 @@ def removed_links(adj, percent):
     total_num = adj.nnz/2
     remove_links_num = int(total_num*percent)
     removes = []
-    
+
     adj_array = csr_matrix(adj, dtype=np.int8).toarray()
     rows = adj_array.shape[0]
     changed_adj = copy.deepcopy(adj_array)
-    
+
     # select the number of removed links
     print('The number of links will be removed is ',remove_links_num)
-    for i in range(remove_links_num):
-        while(True):
+    for _ in range(remove_links_num):
+        while True:
             row = random.randint(0,rows-1) #select a row randomly
-            
-            ones = []
-            for col in range(len(changed_adj[row])):
-                if changed_adj[row][col] == 1:
-                    ones.append(col)
-            
+
+            ones = [
+                col
+                for col in range(len(changed_adj[row]))
+                if changed_adj[row][col] == 1
+            ]
+
             #make sure there are no isolated nodes in graph
             nums = len(ones)
             if nums >1:
@@ -86,7 +92,7 @@ def removed_links(adj, percent):
                     changed_adj[col][row] = 0
                     removes.append([row,col])
                     break
-    
+
     changed_adj = csr_matrix(changed_adj)
     removes = sorted(removes, key=lambda a:a[0])
     print('The number of removd links:', int(len(removes)) )

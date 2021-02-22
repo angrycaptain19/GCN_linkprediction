@@ -37,9 +37,8 @@ def feature_one_two(df, unique_cpcs):
         range_cpc = []
         cri = start+datetime.timedelta(days=date_range)
         for d, c in zip(table['datetime'], cpcs):
-            if d == start or d > start:
-                if d < cri:
-                    range_cpc.extend(c)
+            if (d == start or d > start) and d < cri:
+                range_cpc.extend(c)
         start += datetime.timedelta(days=date_range)
         count_cpc = Counter(range_cpc)
         range_cpcs.append(count_cpc)
@@ -50,10 +49,7 @@ def feature_one_two(df, unique_cpcs):
     all_cpc = Counter(all_cpc)
 
     # Count cpc in the network
-    just_count = []
-    for i in unique_cpcs:
-        just_count.append(all_cpc[i])
-
+    just_count = [all_cpc[i] for i in unique_cpcs]
     # Calculate linear coefficient
     coeffi = []
     x = np.arange(5).reshape(-1, 1)
@@ -102,10 +98,11 @@ def feature_three_four(unique_cpcs, driver_loc):
 
 # Doc2Vec
 def tagging_document(txt):
-    tagged_data = []
-    for i, d in enumerate(txt):
-        tagged_data.append(TaggedDocument(words=word_tokenize(d), tags=[str(i)]))
-    
+    tagged_data = [
+        TaggedDocument(words=word_tokenize(d), tags=[str(i)])
+        for i, d in enumerate(txt)
+    ]
+
     max_epochs = 100
     vec_size = 100
     alpha = 0.025
@@ -135,9 +132,7 @@ def tagging_document(txt):
 # 5. CPC'name vector representation
 def feature_five(unique_cpcs, driver_loc):
     # Get all description from USPTO site
-    only_first_4 = []
-    for u in unique_cpcs:
-        only_first_4.append(u[:4])
+    only_first_4 = [u[:4] for u in unique_cpcs]
     only_first_4 = np.unique(only_first_4)
 
     driver = webdriver.Chrome(driver_loc)
@@ -146,7 +141,7 @@ def feature_five(unique_cpcs, driver_loc):
     for u in only_first_4:
         css_desc = []
         driver.get('https://www.uspto.gov/web/patents/classification/cpc/html/cpc-{0}.html#{1}'.format(u, u))
-        while len(css_desc) == 0:
+        while not css_desc:
             css_desc = driver.find_elements_by_css_selector('div.class-title')
             desc = [i.text for i in css_desc]
             css_cpc = driver.find_elements_by_css_selector('span.symbol')
@@ -181,10 +176,7 @@ def feature_five(unique_cpcs, driver_loc):
 
     model = tagging_document(desc_all)
     # Extract Doc2Vec vectors
-    doc_vectors = []
-    for i in range(len(desc_all)):
-        doc_vectors.append(model.docvecs[i])
-
+    doc_vectors = [model.docvecs[i] for i in range(len(desc_all))]
     return pd.DataFrame(doc_vectors)
 
 
