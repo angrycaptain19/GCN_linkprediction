@@ -123,5 +123,4 @@ def stopwords_lemma(txt):
         else:
             continue
 
-    lemma_result = " ".join(lemma_words)
-    return lemma_result
+    return " ".join(lemma_words)
